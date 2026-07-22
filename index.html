@@ -13,12 +13,13 @@
   }
   .card {
     width:90%; max-width:520px;
-    background: rgba(255,255,255,.12);
+    /* slightly stronger backdrop so text contrast is better */
+    background: rgba(255,255,255,.18);
     backdrop-filter: blur(12px);
     border-radius:20px; padding:36px; text-align:center;
     color:#fff; box-shadow:0 10px 30px rgba(0,0,0,.2);
   }
-  h2 { margin-bottom:22px; font-size:26px; line-height:1.2; }
+  h1 { margin-bottom:22px; font-size:26px; line-height:1.2; }
   .buttons { display:flex; flex-direction:column; gap:10px; }
   button {
     width:100%; padding:12px 14px; border:none; border-radius:28px;
@@ -26,9 +27,11 @@
     display:inline-flex; align-items:center; justify-content:center;
   }
   button:focus { outline:3px solid rgba(255,255,255,.18); transform:translateY(-2px); }
+  /* YES: use strong colored background with white text for contrast */
   .yes {
-    background:#fff; color:#ff2d75; font-weight:700;
+    background:#ff2d75; color:#fff; font-weight:700;
   }
+  /* NO: dark translucent background with white text is OK */
   .no {
     background:rgba(0,0,0,.45); color:#fff;
   }
@@ -52,7 +55,7 @@
 </head>
 <body>
   <div class="card" role="region" aria-label="Friendship questions">
-    <h2 id="question" aria-live="polite">How would you rate our friendship? ❤️</h2>
+    <h1 id="question" aria-live="polite">How would you rate our friendship? ❤️</h1>
     <div id="buttons" class="buttons" aria-hidden="false">
       <button type="button" class="yes" data-choice="a" aria-pressed="false">⭐ Amazing</button>
       <button type="button" class="no"  data-choice="b" aria-pressed="false">😊 Good</button>
@@ -89,13 +92,16 @@
     questionEl.textContent = q.q;
     buttons[0].textContent = q.a1;
     buttons[1].textContent = q.a2;
-    // reset aria-pressed
+    // reset aria-pressed (these are not toggle buttons by default)
     buttons.forEach(b => b.setAttribute('aria-pressed','false'));
     // ensure buttons container visible
     buttonsContainer.setAttribute('aria-hidden','false');
   }
 
   function handleAnswer(choice) {
+    // set aria-pressed properly so assistive tech sees the selection
+    buttons.forEach(b => b.setAttribute('aria-pressed', b.dataset.choice === choice ? 'true' : 'false'));
+
     // record the choice (value can be 'a' or 'b')
     responses.push({ step, choice, question: questions[step].q });
 
@@ -140,14 +146,16 @@
     const h = document.createElement('div');
     h.className = 'heart';
     h.textContent = '❤';
+    // mark decorative content hidden from AT
+    h.setAttribute('aria-hidden', 'true');
     // random horizontal position
     const left = Math.random() * 100;
     h.style.left = left + '%';
     const size = 14 + Math.random() * 32;
     h.style.fontSize = size + 'px';
     // random animation duration and delay
-    const dur = (5 + Math.random() * 6).toFixed(02);
-    const delay = (-Math.random() * 8).toFixed(02); // negative so they start staggered
+    const dur = (5 + Math.random() * 6).toFixed(2);
+    const delay = (-Math.random() * 8).toFixed(2); // negative so they start staggered
     h.style.animation = `float ${dur}s linear infinite`;
     h.style.animationDelay = delay + 's';
     // initial transform to slightly vary start position
