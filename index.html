@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Just a Few Questions ❤️</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
+  body {
+    background: linear-gradient(135deg,#ff5f8f,#ff9ec4);
+    display:flex; justify-content:center; align-items:center;
+    height:100vh; overflow:hidden;
+  }
+  .card {
+    width:90%; max-width:520px;
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(12px);
+    border-radius:20px; padding:36px; text-align:center;
+    color:#fff; box-shadow:0 10px 30px rgba(0,0,0,.2);
+  }
+  h2 { margin-bottom:22px; font-size:26px; line-height:1.2; }
+  .buttons { display:flex; flex-direction:column; gap:10px; }
+  button {
+    width:100%; padding:12px 14px; border:none; border-radius:28px;
+    font-size:18px; cursor:pointer; transition:transform .18s ease, box-shadow .18s;
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+  button:focus { outline:3px solid rgba(255,255,255,.18); transform:translateY(-2px); }
+  .yes {
+    background:#fff; color:#ff2d75; font-weight:700;
+  }
+  .no {
+    background:rgba(0,0,0,.45); color:#fff;
+  }
+  button:hover { transform:scale(1.03); }
+  .heart {
+    position:absolute; color:white; opacity:.65; pointer-events:none;
+    will-change:transform; user-select:none;
+  }
+  @keyframes float {
+    from { transform: translateY(100vh); }
+    to   { transform: translateY(-140px); }
+  }
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .heart { animation: none !important; display:none; }
+    button { transition: none; }
+  }
+  .final-message h1 { font-size:28px; margin-bottom:8px; }
+  .final-message p { color:#fff; opacity:.95; font-size:18px; margin-top:14px; }
+</style>
+</head>
+<body>
+  <div class="card" role="region" aria-label="Friendship questions">
+    <h2 id="question" aria-live="polite">How would you rate our friendship? ❤️</h2>
+    <div id="buttons" class="buttons" aria-hidden="false">
+      <button type="button" class="yes" data-choice="a" aria-pressed="false">⭐ Amazing</button>
+      <button type="button" class="no"  data-choice="b" aria-pressed="false">😊 Good</button>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // Questions array (kept from original)
+  const questions = [
+    { q:"How would you rate our friendship? ❤️", a1:"⭐ Amazing", a2:"😊 Good" },
+    { q:"Do you enjoy talking to me? 😊", a1:"✅ Yes", a2:"❌ No" },
+    { q:"Do I make you smile? 😊", a1:"😊 Yes", a2:"❌ No" },
+    { q:"You once said trying your luck with someone isn't a bad thing... right? 😉", a1:"✅ Yes", a2:"❌ No" },
+    { q:"So... should I try my luck with you? ❤️", a1:"💖 Yes, you should", a2:"🥰 Definitely yes" }
+  ];
+
+  let step = 0;
+  const responses = []; // store user choices if needed later
+
+  const questionEl = document.getElementById('question');
+  const buttonsContainer = document.getElementById('buttons');
+  const buttons = Array.from(buttonsContainer.querySelectorAll('button'));
+
+  // Attach listeners
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => handleAnswer(btn.dataset.choice));
+    // allow Enter/Space activation (button elements already do this).
+  });
+
+  function updateUIForStep() {
+    const q = questions[step];
+    if (!q) return;
+    questionEl.textContent = q.q;
+    buttons[0].textContent = q.a1;
+    buttons[1].textContent = q.a2;
+    // reset aria-pressed
+    buttons.forEach(b => b.setAttribute('aria-pressed','false'));
+    // ensure buttons container visible
+    buttonsContainer.setAttribute('aria-hidden','false');
+  }
+
+  function handleAnswer(choice) {
+    // record the choice (value can be 'a' or 'b')
+    responses.push({ step, choice, question: questions[step].q });
+
+    step++;
+    if (step < questions.length) {
+      updateUIForStep();
+      // focus first button for keyboard users
+      buttons[0].focus();
+    } else {
+      // final screen
+      showFinalMessage();
+    }
+  }
+
+  function showFinalMessage() {
+    // build safe final message DOM (no innerHTML)
+    const card = document.querySelector('.card');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'final-message';
+    const h1 = document.createElement('h1'); h1.textContent = '❤️ Thank You ❤️';
+    const h2 = document.createElement('h2'); h2.textContent = 'You just made my day!';
+    const p = document.createElement('p');
+    p.style.fontSize = '18px';
+    p.style.marginTop = '14px';
+    p.textContent = "No matter which option you chose, it means a lot to me. 💖 You're truly special. ❤️";
+    wrapper.appendChild(h1);
+    wrapper.appendChild(h2);
+    wrapper.appendChild(p);
+    card.innerHTML = ''; // clear old content
+    card.appendChild(wrapper);
+
+    // Optionally log responses to console for debugging (remove for production)
+    // console.log('responses:', responses);
+  }
+
+  // initialize UI
+  updateUIForStep();
+
+  // Create floating hearts (uses textContent for safety)
+  const heartCount = 24;
+  for (let i = 0; i < heartCount; i++) {
+    const h = document.createElement('div');
+    h.className = 'heart';
+    h.textContent = '❤';
+    // random horizontal position
+    const left = Math.random() * 100;
+    h.style.left = left + '%';
+    const size = 14 + Math.random() * 32;
+    h.style.fontSize = size + 'px';
+    // random animation duration and delay
+    const dur = (5 + Math.random() * 6).toFixed(02);
+    const delay = (-Math.random() * 8).toFixed(02); // negative so they start staggered
+    h.style.animation = `float ${dur}s linear infinite`;
+    h.style.animationDelay = delay + 's';
+    // initial transform to slightly vary start position
+    const startOffset = Math.round(Math.random() * 40) - 20;
+    h.style.transform = `translateY(${startOffset}px)`;
+    document.body.appendChild(h);
+  }
+
+})();
+</script>
+</body>
+</html>
